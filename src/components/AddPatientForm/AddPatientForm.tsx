@@ -2,15 +2,13 @@
 
 import { addPatient, type ActionResponse } from "./actions"
 import { SubmitButton } from "./SubmitButton"
-import { Dispatch, SetStateAction, useActionState, useEffect, useState } from "react"
+import { useActionState } from "react"
 import { Dialog } from "radix-ui"
 import { Plus, X } from "lucide-react"
 
 export default function AddPatientForm() {
-  const [open, setOpen] = useState(false)
-
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root>
       <Dialog.Trigger asChild>
         <button className="bg-blue-700 text-white px-4 py-2 hover:bg-blue-900 cursor-pointer rounded-[20px] mx-auto flex gap-1 items-center tracking-wide">
           <Plus strokeWidth={4} className="w-5 h-5" />
@@ -25,7 +23,7 @@ export default function AddPatientForm() {
             New Patient
           </Dialog.Title>
 
-          <Form setOpen={setOpen} />
+          <Form />
 
           <Dialog.Close asChild>
             <button
@@ -41,34 +39,35 @@ export default function AddPatientForm() {
   )
 }
 
-const Form = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) => {
+const Form = () => {
   const [state, formAction, isPending] = useActionState<ActionResponse, FormData>(addPatient, {
     success: false,
-    error: null,
+    errors: null,
   })
 
-  // Close the modal on successful submission
-  useEffect(() => {
-    if (state.success && !isPending) {
-      setOpen(false)
-    }
-  }, [state.success, isPending])
-
   return (
-    <form action={formAction} className="w-[350px] mx-auto space-y-5 p-4 pb-0 bg-black">
+    <form action={formAction} className="w-[350px] mx-auto space-y-5 p-4 pb-0 bg-black" noValidate>
+      {state.errors?.general && (
+        <div className="text-red-500 border rounded-md px-4 py-6">{state.errors.general}</div>
+      )}
+
       <div>
         <label htmlFor="name" className="block">
-          Name:
+          Full Name:
         </label>
         <input
           type="text"
           id="name"
           name="name"
-          required
           placeholder=" "
           className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
+          style={state.errors?.name && { border: "2px solid red" }}
           defaultValue={state.data?.name || ""}
         />
+
+        {state?.errors?.name && (
+          <p className="text-sm text-red-500 text-center mt-1">{state.errors.name[0]}</p>
+        )}
       </div>
 
       <div>
@@ -79,11 +78,15 @@ const Form = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) => {
           type="email"
           id="email"
           name="email"
-          required
           placeholder=" "
           className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
+          style={state.errors?.email && { border: "2px solid red" }}
           defaultValue={state.data?.email || ""}
         />
+
+        {state?.errors?.email && (
+          <p className="text-sm text-red-500 text-center mt-1">{state.errors.email[0]}</p>
+        )}
       </div>
 
       <div>
@@ -94,16 +97,18 @@ const Form = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) => {
           type="tel"
           id="phone"
           name="phone"
-          required
           placeholder=" "
           className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
+          style={state.errors?.phone && { border: "2px solid red" }}
           defaultValue={state.data?.phone || ""}
         />
+
+        {state?.errors?.phone && (
+          <p className="text-sm text-red-500 text-center mt-1">{state.errors?.phone[0]}</p>
+        )}
       </div>
 
       <SubmitButton />
-
-      {state.error && <p className="text-red-500 mt-2">{state.error}</p>}
     </form>
   )
 }

@@ -3,10 +3,16 @@
 import { createPatient, getPatientByEmail } from "@/lib/Patients"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import z from "zod"
 
 export type ActionResponse = {
   success: boolean
-  error: string | null
+  errors: {
+    email?: string[]
+    name?: string[]
+    phone?: string[]
+    general?: string
+  } | null
   data?: {
     name: string
     email: string
@@ -18,27 +24,66 @@ export async function addPatient(
   prevState: ActionResponse,
   formData: FormData
 ): Promise<ActionResponse> {
-  const name = formData.get("name") as string
-  const email = formData.get("email") as string
-  const phone = formData.get("phone") as string
+  const nameInput = formData.get("name") as string
+  const emailInput = formData.get("email") as string
+  const phoneInput = formData.get("phone") as string
 
-  // TODO add validation
-  console.log({ name, phone, email })
+  const patientSchema = z.object({
+    email: z
+      .email({ message: "Invalid email address" })
+      .regex(/^[^@]+@gmail\.com$/, { message: "Email must be a @gmail.com address" })
+      .trim(),
+    name: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .regex(/^[A-Za-z\s]+$/, { message: "Name must contain only letters" })
+      .trim(),
+    phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }).trim(),
+  })
 
-  const patientAllreadyExists = await getPatientByEmail(email)
+  // Validate input
+  const result = patientSchema.safeParse(Object.fromEntries(formData))
 
-  console.log({ patientAllreadyExists })
-
-  if (patientAllreadyExists) {
+  if (!result.success) {
     return {
       success: false,
-      error: "A patient with this email already exists.",
-      data: { email, name, phone },
+      errors: z.flattenError(result.error).fieldErrors,
+      data: { name: nameInput, email: emailInput, phone: phoneInput },
     }
-  } else {
+  }
+
+  const { name, email, phone } = result.data
+
+  try {
+    const patientAllreadyExists = await getPatientByEmail(email)
+
+    if (patientAllreadyExists) {
+      return {
+        success: false,
+        errors: { email: ["Email already registered"] },
+        data: { email, name, phone },
+      }
+    }
+
     await createPatient({ name, email, phone })
 
+    // Mock sending email
+    // sendWelcomeEmail({ email, name })
+    console.log(
+      `Sending welcome email to ${email}: "Welcome, ${name}! You have been successfully registered in Light-it."`
+    )
+
     revalidatePath("/")
-    redirect(`/?query=${name}`)
+  } catch (error) {
+    console.error(error)
+
+    return {
+      success: false,
+      errors: {
+        general: "There was an error trying to access the database, please try again",
+      },
+      data: { email, name, phone },
+    }
   }
+  redirect(`/?query=${name}`)
 }
