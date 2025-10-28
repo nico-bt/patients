@@ -1,14 +1,19 @@
 "use client"
 
-import { addPatient, type ActionResponse } from "./actions"
-import { SubmitButton } from "./SubmitButton"
-import { useActionState } from "react"
+import { addPatient } from "./actions"
 import { Dialog } from "radix-ui"
 import { Plus, X } from "lucide-react"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { PatientFormFields, patientSchema } from "@/utils/zodSchema"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Dispatch, SetStateAction, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function AddPatientForm() {
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
-    <Dialog.Root>
+    <Dialog.Root defaultOpen={false} open={isOpen} onOpenChange={setIsOpen}>
       <Dialog.Trigger asChild>
         <button className="bg-blue-700 text-white px-4 py-2 hover:bg-blue-900 cursor-pointer rounded-[20px] mx-auto flex gap-1 items-center tracking-wide">
           <Plus strokeWidth={4} className="w-5 h-5" />
@@ -23,7 +28,7 @@ export default function AddPatientForm() {
             New Patient
           </Dialog.Title>
 
-          <Form />
+          <Form setIsOpen={setIsOpen} />
 
           <Dialog.Close asChild>
             <button
@@ -39,34 +44,68 @@ export default function AddPatientForm() {
   )
 }
 
-const Form = () => {
-  const [state, formAction, isPending] = useActionState<ActionResponse, FormData>(addPatient, {
-    success: false,
-    errors: null,
+const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
+  const router = useRouter()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<PatientFormFields>({
+    resolver: zodResolver(patientSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+    },
   })
 
+  const onSubmit: SubmitHandler<PatientFormFields> = async (data) => {
+    const result = await addPatient(data)
+
+    // set the server error response to local state managed by react-hook-form (setError)
+    if (!result.success && result.errors) {
+      Object.entries(result.errors).forEach(([field, message]) => {
+        setError(field as keyof typeof data, { message })
+      })
+    }
+
+    if (result.success) {
+      setIsOpen(false)
+      router.refresh()
+      router.push(`/?query=${data.name}`)
+    }
+  }
+
   return (
-    <form action={formAction} className="w-[350px] mx-auto space-y-5 p-4 pb-0 bg-black" noValidate>
-      {state.errors?.general && (
-        <div className="text-red-500 border rounded-md px-4 py-6">{state.errors.general}</div>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="w-[350px] mx-auto space-y-5 p-4 pb-0 bg-black"
+      noValidate
+    >
+      {/* GENERAL ERROR */}
+      {/* (named "root" both in react-hook-form and in the returned errors.root in the addPatient action) */}
+      {errors?.root && (
+        <div className="text-red-500 border rounded-md px-4 py-6">{errors.root.message}</div>
       )}
 
+      {/* INPUTS  */}
+      {/* with their respective error below --> errors.name */}
       <div>
         <label htmlFor="name" className="block">
           Full Name:
         </label>
         <input
+          {...register("name")}
           type="text"
-          id="name"
-          name="name"
-          placeholder=" "
+          placeholder=""
           className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
-          style={state.errors?.name && { border: "2px solid red" }}
-          defaultValue={state.data?.name || ""}
+          style={errors?.name && { border: "2px solid red" }}
         />
 
-        {state?.errors?.name && (
-          <p className="text-sm text-red-500 text-center mt-1">{state.errors.name[0]}</p>
+        {errors.name && (
+          <p className="text-sm text-red-500 text-center mt-1">{errors.name.message}</p>
         )}
       </div>
 
@@ -75,17 +114,15 @@ const Form = () => {
           Email:
         </label>
         <input
+          {...register("email")}
           type="email"
-          id="email"
-          name="email"
-          placeholder=" "
+          placeholder=""
           className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
-          style={state.errors?.email && { border: "2px solid red" }}
-          defaultValue={state.data?.email || ""}
+          style={errors?.email && { border: "2px solid red" }}
         />
 
-        {state?.errors?.email && (
-          <p className="text-sm text-red-500 text-center mt-1">{state.errors.email[0]}</p>
+        {errors.email && (
+          <p className="text-sm text-red-500 text-center mt-1">{errors.email.message}</p>
         )}
       </div>
 
@@ -94,21 +131,25 @@ const Form = () => {
           Phone:
         </label>
         <input
+          {...register("phone")}
           type="tel"
-          id="phone"
-          name="phone"
-          placeholder=" "
+          placeholder=""
           className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
-          style={state.errors?.phone && { border: "2px solid red" }}
-          defaultValue={state.data?.phone || ""}
+          style={errors?.phone && { border: "2px solid red" }}
         />
 
-        {state?.errors?.phone && (
-          <p className="text-sm text-red-500 text-center mt-1">{state.errors?.phone[0]}</p>
+        {errors.phone && (
+          <p className="text-sm text-red-500 text-center mt-1">{errors.phone.message}</p>
         )}
       </div>
 
-      <SubmitButton />
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="ml-auto flex mt-12 bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-900 disabled:bg-blue-300 cursor-pointer disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? "Loading..." : "Add Patient"}
+      </button>
     </form>
   )
 }
