@@ -8,6 +8,8 @@ import photo_placeholder from "../../../public/Photo_Placeholder.jpg"
 import { deletePatient } from "./actions"
 
 import { Manrope } from "next/font/google"
+import { PhoneInput } from "react-international-phone"
+
 const manrope = Manrope({
   subsets: ["latin"],
 })
@@ -80,7 +82,19 @@ function PatientCard({ patient }: { patient: Patient }) {
               <Phone className="h-4 w-4" />
               Phone:
             </p>
-            <p className="text-base pl-2">{patient.phone}</p>
+            <div className="text-base pl-2">
+              <PhoneInput
+                value={patient.phone}
+                disabled
+                inputProps={{ readOnly: true }}
+                inputStyle={{ background: "none", border: "none", color: "white", fontSize: 16 }}
+                countrySelectorStyleProps={{
+                  dropdownArrowStyle: { display: "none" },
+                  flagStyle: { opacity: 1 },
+                  buttonStyle: { background: "none", border: "none", opacity: 1 },
+                }}
+              />
+            </div>
           </div>
         </div>
 

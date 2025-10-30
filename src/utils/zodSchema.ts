@@ -1,4 +1,5 @@
 import z from "zod"
+import { isPhoneValid } from "./isPhoneValid"
 
 export const patientSchema = z.object({
   email: z
@@ -10,7 +11,12 @@ export const patientSchema = z.object({
     .min(2, { message: "Name must be at least 2 characters" })
     .regex(/^[A-Za-z\s]+$/, { message: "Name must contain only letters" })
     .trim(),
-  phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }).trim(),
+  phone: z
+    .string()
+    .trim()
+    .refine((val) => isPhoneValid(val), {
+      message: "Invalid phone number",
+    }),
 })
 
 export type PatientFormFields = z.infer<typeof patientSchema>

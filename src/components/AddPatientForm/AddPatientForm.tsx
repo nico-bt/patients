@@ -3,11 +3,16 @@
 import { addPatient } from "./actions"
 import { Dialog } from "radix-ui"
 import { Plus, X } from "lucide-react"
-import { SubmitHandler, useForm } from "react-hook-form"
+import { Controller, SubmitHandler, useForm } from "react-hook-form"
 import { PatientFormFields, patientSchema } from "@/utils/zodSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Dispatch, SetStateAction, useState } from "react"
 import { useRouter } from "next/navigation"
+
+// phone
+import { PhoneInput } from "react-international-phone"
+import "react-international-phone/style.css"
+import { isPhoneValid } from "@/utils/isPhoneValid"
 
 export default function AddPatientForm() {
   const [isOpen, setIsOpen] = useState(false)
@@ -52,6 +57,8 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
+    setValue,
+    control,
   } = useForm<PatientFormFields>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
@@ -62,6 +69,8 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
   })
 
   const onSubmit: SubmitHandler<PatientFormFields> = async (data) => {
+    console.log({ data })
+
     const result = await addPatient(data)
 
     // set the server error response to local state managed by react-hook-form (setError)
@@ -83,6 +92,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
       onSubmit={handleSubmit(onSubmit)}
       className="w-[350px] mx-auto space-y-5 p-4 pb-0 bg-black"
       noValidate
+      autoComplete="off"
     >
       {/* GENERAL ERROR */}
       {/* (named "root" both in react-hook-form and in the returned errors.root in the addPatient action) */}
@@ -100,7 +110,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
           {...register("name")}
           type="text"
           placeholder=""
-          className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
+          className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2"
           style={errors?.name && { border: "2px solid red" }}
         />
 
@@ -117,7 +127,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
           {...register("email")}
           type="email"
           placeholder=""
-          className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
+          className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2"
           style={errors?.email && { border: "2px solid red" }}
         />
 
@@ -130,13 +140,47 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
         <label htmlFor="phone" className="block font-medium ">
           Phone:
         </label>
-        <input
-          {...register("phone")}
-          type="tel"
-          placeholder=""
-          className="mt-1 text-lg block w-full rounded-md border border-gray-300 px-3 py-2 not-placeholder-shown:bg-gray-100 not-placeholder-shown:text-black"
-          style={errors?.phone && { border: "2px solid red" }}
+
+        <Controller
+          control={control}
+          name="phone"
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <PhoneInput
+              value={value}
+              onChange={onChange} // send value to hook form
+              onBlur={onBlur} // notify when input is touched/blur
+              defaultCountry="ar"
+              className="px-3 py-2 mt-1 text-lg block w-full rounded-md border border-gray-300 bg-black"
+              inputClassName="w-full bg-black"
+              inputStyle={{
+                backgroundColor: "black",
+                color: "white",
+                fontSize: 16,
+                border: "none",
+              }}
+              countrySelectorStyleProps={{
+                buttonStyle: { backgroundColor: "black", border: "none" },
+              }}
+              style={errors?.phone && { border: "2px solid red" }}
+            />
+          )}
         />
+        {/* 
+        <PhoneInput
+          value={phoneValue}
+          onChange={(val) => setValue("phone", val, { shouldValidate: false, shouldDirty: true })}
+          defaultCountry="ar"
+          className="px-3 py-2 mt-1 text-lg block w-full rounded-md border border-gray-300 bg-black"
+          inputClassName="w-full bg-black"
+          inputStyle={{
+            backgroundColor: "black",
+            color: "white",
+            fontSize: 16,
+            border: "none",
+          }}
+          countrySelectorStyleProps={{ buttonStyle: { backgroundColor: "black", border: "none" } }}
+          style={errors?.phone && { border: "2px solid red" }}
+        /> */}
 
         {errors.phone && (
           <p className="text-sm text-red-500 text-center mt-1">{errors.phone.message}</p>

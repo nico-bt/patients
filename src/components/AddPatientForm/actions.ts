@@ -1,9 +1,8 @@
 "use server"
 
 import { createPatient, getPatientByEmail } from "@/lib/Patients"
-import { patientSchema } from "@/utils/zodSchema"
+import { PatientFormFields, patientSchema } from "@/utils/zodSchema"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import z from "zod"
 
 export type ActionResponse = {
@@ -21,13 +20,7 @@ export type ActionResponse = {
   }
 }
 
-type AddPatientInputs = {
-  name: string
-  email: string
-  phone: string
-}
-
-export async function addPatient(data: AddPatientInputs): Promise<ActionResponse> {
+export async function addPatient(data: PatientFormFields): Promise<ActionResponse> {
   // Validate input
   const result = patientSchema.safeParse(data)
 
