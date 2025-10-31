@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Patient Registration
 
-## Getting Started
+👋 Hello  
+I've seen on linkedin and in your website that you currently have several open positions.  
+So I have applied for frontend (semi-senior).  
 
-First, run the development server:
+Also, previous any contact, I looked for recent code challenges in github to present in advance.  
+And I found [this one:](https://github.com/JJQuartino/ChallengeLightIt/blob/main/README.md)
+that seems more fullstack oriented.  
+But did it anyway as a spontaneous presentation.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Live: 🔗 https://patients-lemon.vercel.app/
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+It is a Next.js application to register and manage patients.  
+You can:
+- Add/delete patients.
+- Upload images
+- Search patients by name
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Techs used:
+- Nextjs
+- Typescript
+- Tailwind
+- Client side validation: React Hook Form + Zod
+- Server side validation: Zod
+- Database: Prisma ORM (Postgres) + Supabase
+- Images: bucket in Supabase Storage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Comments
+- Followed the "Next way" of using server actions and getting direct access to db via Server Components.  
+I did not create a separate api to access via client side.
 
-To learn more about Next.js, take a look at the following resources:
+- I've kept the server actions files close to where they are used. Other option could be to create a separate "actions" folder.
+  
+- I took the liberty of using Supabase instead of a local Docker database to store patients and images in the cloud.  
+  This cloud instance can be used as a development/staging environment.
+  
+- Patients schema and crud operations are defined using Prisma ORM, stored in a postgres db on Supabase.
+  
+- Images are uploaded to a bucket on Supabase and then the resulting url is stored in a patient.photo item.  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- The phone input uses `react-international-phone` package.  
+  And also I've validated the numbers using https://github.com/google/libphonenumber  
+  May be this validation could be a litte too strict, and could be better to validate in the future sending an sms only.  
+  And just give the user more freedom for entering phone numbers with a less strict validation.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Entity Diagram
+<img width="887" height="505" alt="image" src="https://github.com/user-attachments/assets/37a3b0ce-6a18-4624-8b11-cef365f6c715" />
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Next steps / improvements
+
+- Add pagination or infinite scrolling or "show more" to limit the number of items
+- Add "edit patient" feature
+- Add tests
+
+❤️ Hope you like it!  
+
+PD: for running locally, after cloning the repo, you will need to add an .env file with keys to access db.  
+Hypothetically, if we were using a cloud database for staging, the .env file could be shared privately via ClickUp, Slack, or another method.
