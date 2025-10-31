@@ -14,6 +14,7 @@ import Image from "next/image"
 import { PhoneInput } from "react-international-phone"
 import "react-international-phone/style.css"
 import { uploadImage } from "@/supabase/storage/client"
+import toast from "react-hot-toast"
 
 export default function AddPatientForm() {
   const [isOpen, setIsOpen] = useState(false)
@@ -60,7 +61,6 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-    setValue,
     control,
   } = useForm<PatientFormFields>({
     resolver: zodResolver(patientSchema),
@@ -81,6 +81,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
 
       if (error) {
         console.error(error)
+        toast.error(error)
         return
       }
 
@@ -99,6 +100,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
     if (result.success) {
       setIsOpen(false)
       router.refresh()
+      toast.success("Patient added")
       router.push(`/?query=${data.name}`)
     }
   }

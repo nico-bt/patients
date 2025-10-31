@@ -10,6 +10,7 @@ import { deletePatient } from "./actions"
 import { Manrope } from "next/font/google"
 import { PhoneInput } from "react-international-phone"
 import { deleteImage } from "@/supabase/storage/client"
+import toast from "react-hot-toast"
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -34,8 +35,11 @@ function PatientCard({ patient }: { patient: Patient }) {
       deleteImage(patient.photo)
     }
     const result = await deletePatient(id)
-    //todo: message if error deleting
     setIsloading(false)
+
+    if (result.error) {
+      toast.error(result.error)
+    }
   }
 
   return (

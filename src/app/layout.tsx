@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Ubuntu_Sans } from "next/font/google"
 import "./globals.css"
 import Header from "@/components/Header"
+import { Toaster } from "react-hot-toast"
 
 const ubuntu = Ubuntu_Sans({
   subsets: ["latin"],
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={ubuntu.className}>
       <body>
+        <Toaster position="top-center" />
         <Header />
         <div className="mx-auto max-w-[1440px] grid justify-items-center gap-6">{children}</div>
       </body>
