@@ -212,15 +212,36 @@ const FileImgInput = ({
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target?.files?.[0]) {
-      const file = e.target.files[0]
-      const imgURl = URL.createObjectURL(file)
-      setImagePreviewUrl(imgURl)
-      setImageFile(file)
-    } else {
+    const file = e.target?.files?.[0]
+
+    if (!file) {
       setImagePreviewUrl("")
       setImageFile(undefined)
+      return
     }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file (jpg, png, jpeg)")
+      e.target.value = ""
+      setImagePreviewUrl("")
+      setImageFile(undefined)
+      return
+    }
+
+    // Limit size 5 MB
+    const maxSizeMB = 5
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      toast.error(`Image must be smaller than ${maxSizeMB} MB`)
+      e.target.value = ""
+      setImagePreviewUrl("")
+      setImageFile(undefined)
+      return
+    }
+
+    const imgURl = URL.createObjectURL(file)
+    setImagePreviewUrl(imgURl)
+    setImageFile(file)
   }
 
   return (
