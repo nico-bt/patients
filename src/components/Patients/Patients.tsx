@@ -2,7 +2,7 @@
 
 import { Patient } from "@prisma/client"
 import { Loader2, Mail, Phone, TrashIcon } from "lucide-react"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Image from "next/image"
 import photo_placeholder from "../../../public/Photo_Placeholder.jpg"
 import { deletePatient } from "./actions"
@@ -27,19 +27,20 @@ export default function Patients({ patients }: { patients: Patient[] }) {
 }
 
 function PatientCard({ patient }: { patient: Patient }) {
-  const [isLoading, setIsloading] = useState(false)
+  // const [isLoading, setIsloading] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   const handleDelete = async (id: number) => {
-    setIsloading(true)
-    if (patient.photo) {
-      deleteImage(patient.photo)
-    }
-    const result = await deletePatient(id)
-    setIsloading(false)
+    startTransition(async () => {
+      if (patient.photo) {
+        deleteImage(patient.photo)
+      }
+      const result = await deletePatient(id)
 
-    if (result.error) {
-      toast.error(result.error)
-    }
+      if (result.error) {
+        toast.error(result.error)
+      }
+    })
   }
 
   return (
@@ -47,7 +48,7 @@ function PatientCard({ patient }: { patient: Patient }) {
       <details className="group border border-slate-600 overflow-hidden elevateOnHover relative bg-slate-900">
         <summary className="flex flex-col items-center gap-4 p-4 cursor-pointer list-none">
           {patient.photo ? (
-            <img
+            <Image
               src={patient.photo}
               height={150}
               width={150}
@@ -106,7 +107,7 @@ function PatientCard({ patient }: { patient: Patient }) {
           </div>
         </div>
 
-        {isLoading ? (
+        {isPending ? (
           <div className="top-0 bottom-0 w-full grid place-items-center z-20 absolute bg-gray-800 opacity-50 rounded-xl">
             <Loader2 className="animate-spin" />
           </div>
