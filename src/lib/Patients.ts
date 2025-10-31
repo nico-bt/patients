@@ -1,3 +1,4 @@
+import { deleteImage } from "@/supabase/storage/client"
 import { prisma } from "./prisma"
 
 export async function createPatient({

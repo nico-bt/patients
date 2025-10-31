@@ -17,6 +17,7 @@ export const patientSchema = z.object({
     .refine((val) => isPhoneValid(val), {
       message: "Invalid phone number",
     }),
+  photo: z.string().optional(),
 })
 
 export type PatientFormFields = z.infer<typeof patientSchema>

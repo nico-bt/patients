@@ -9,6 +9,7 @@ import { deletePatient } from "./actions"
 
 import { Manrope } from "next/font/google"
 import { PhoneInput } from "react-international-phone"
+import { deleteImage } from "@/supabase/storage/client"
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -29,6 +30,9 @@ function PatientCard({ patient }: { patient: Patient }) {
 
   const handleDelete = async (id: number) => {
     setIsloading(true)
+    if (patient.photo) {
+      deleteImage(patient.photo)
+    }
     const result = await deletePatient(id)
     //todo: message if error deleting
     setIsloading(false)

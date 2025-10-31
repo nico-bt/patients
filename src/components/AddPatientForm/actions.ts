@@ -38,7 +38,7 @@ export async function addPatient(data: PatientFormFields): Promise<ActionRespons
     }
   }
 
-  const { name, email, phone } = result.data
+  const { name, email, phone, photo } = result.data
 
   try {
     const patientAllreadyExists = await getPatientByEmail(email)
@@ -51,7 +51,7 @@ export async function addPatient(data: PatientFormFields): Promise<ActionRespons
       }
     }
 
-    await createPatient({ name, email, phone })
+    await createPatient({ name, email, phone, photo })
 
     // Mock sending email
     // sendWelcomeEmail({ email, name })

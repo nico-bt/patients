@@ -25,3 +25,14 @@ body {
   transform: scale(1.04);
   box-shadow: 6px 6px 6px black;
 }
+
+.formInputFile::-webkit-file-upload-button {
+  background-color: darkviolet;
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1rem;
+  margin-right: 1rem;
+  cursor: pointer;
+}

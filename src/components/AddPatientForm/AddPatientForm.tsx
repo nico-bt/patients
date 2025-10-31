@@ -6,13 +6,14 @@ import { Plus, X } from "lucide-react"
 import { Controller, SubmitHandler, useForm } from "react-hook-form"
 import { PatientFormFields, patientSchema } from "@/utils/zodSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Dispatch, SetStateAction, useState } from "react"
+import { ChangeEvent, Dispatch, SetStateAction, useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 // phone
 import { PhoneInput } from "react-international-phone"
 import "react-international-phone/style.css"
-import { isPhoneValid } from "@/utils/isPhoneValid"
+import { uploadImage } from "@/supabase/storage/client"
 
 export default function AddPatientForm() {
   const [isOpen, setIsOpen] = useState(false)
@@ -52,6 +53,8 @@ export default function AddPatientForm() {
 const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
   const router = useRouter()
 
+  const [imageFile, setImageFile] = useState<File>()
+
   const {
     register,
     handleSubmit,
@@ -65,11 +68,24 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
       name: "",
       email: "",
       phone: "",
+      photo: "",
     },
   })
 
   const onSubmit: SubmitHandler<PatientFormFields> = async (data) => {
-    console.log({ data })
+    if (imageFile) {
+      const { imageUrl, error } = await uploadImage({
+        file: imageFile,
+        bucket: "patients-imgs",
+      })
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      data.photo = imageUrl
+    }
 
     const result = await addPatient(data)
 
@@ -165,27 +181,13 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
             />
           )}
         />
-        {/* 
-        <PhoneInput
-          value={phoneValue}
-          onChange={(val) => setValue("phone", val, { shouldValidate: false, shouldDirty: true })}
-          defaultCountry="ar"
-          className="px-3 py-2 mt-1 text-lg block w-full rounded-md border border-gray-300 bg-black"
-          inputClassName="w-full bg-black"
-          inputStyle={{
-            backgroundColor: "black",
-            color: "white",
-            fontSize: 16,
-            border: "none",
-          }}
-          countrySelectorStyleProps={{ buttonStyle: { backgroundColor: "black", border: "none" } }}
-          style={errors?.phone && { border: "2px solid red" }}
-        /> */}
 
         {errors.phone && (
           <p className="text-sm text-red-500 text-center mt-1">{errors.phone.message}</p>
         )}
       </div>
+
+      <FileImgInput setImageFile={setImageFile} isSubmitting={isSubmitting} />
 
       <button
         type="submit"
@@ -195,5 +197,53 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
         {isSubmitting ? "Loading..." : "Add Patient"}
       </button>
     </form>
+  )
+}
+
+const FileImgInput = ({
+  setImageFile,
+  isSubmitting,
+}: {
+  setImageFile: Dispatch<SetStateAction<File | undefined>>
+  isSubmitting: boolean
+}) => {
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("")
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target?.files?.[0]) {
+      const file = e.target.files[0]
+      const imgURl = URL.createObjectURL(file)
+      setImagePreviewUrl(imgURl)
+      setImageFile(file)
+    } else {
+      setImagePreviewUrl("")
+      setImageFile(undefined)
+    }
+  }
+
+  return (
+    <div>
+      <label className="block font-medium">Image</label>
+
+      {imagePreviewUrl && (
+        <Image
+          src={imagePreviewUrl}
+          height={150}
+          width={150}
+          alt="preview image to upload"
+          key={imagePreviewUrl}
+          className="object-cover object-top h-20 w-20 rounded-xl mx-auto mt-1"
+        />
+      )}
+      <input
+        className="formInputFile mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-center cursor-pointer"
+        type="file"
+        id="image"
+        onChange={handleChange}
+        accept=".jpg,.png,.jpeg"
+        required
+        disabled={isSubmitting}
+      />
+    </div>
   )
 }
