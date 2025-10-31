@@ -1,8 +1,8 @@
 import { Suspense } from "react"
 import Patients from "@/components/Patients/Patients"
 import { getPatients } from "@/lib/Patients"
-import SearchBar from "@/components/SearchBar/SearchBar"
-import AddPatientForm from "@/components/AddPatientForm/AddPatientForm"
+import SearchBar from "@/components/SearchBar"
+import AddPatientDialog from "@/components/AddPatientForm/AddPatientDialog"
 
 type SearchParams = Promise<{ query: string | undefined }>
 
@@ -12,7 +12,7 @@ export default async function Home(props: { searchParams: SearchParams }) {
 
   return (
     <main className="w-full p-2 mx-auto grid grid-cols-1 max-w-[400px] sm:max-w-[1000px] gap-3 sm:gap-5 mt-1">
-      <AddPatientForm />
+      <AddPatientDialog />
 
       <SearchBar />
 

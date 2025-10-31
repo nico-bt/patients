@@ -1,57 +1,21 @@
 "use client"
 
 import { addPatient } from "./actions"
-import { Dialog } from "radix-ui"
-import { Plus, X } from "lucide-react"
 import { Controller, SubmitHandler, useForm } from "react-hook-form"
 import { PatientFormFields, patientSchema } from "@/utils/zodSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChangeEvent, Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction, useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 
 // phone
 import { PhoneInput } from "react-international-phone"
 import "react-international-phone/style.css"
 import { uploadImage } from "@/supabase/storage/client"
 import toast from "react-hot-toast"
+import { Loader2 } from "lucide-react"
+import { FileImgInput } from "./FileImgInput"
 
-export default function AddPatientForm() {
-  const [isOpen, setIsOpen] = useState(false)
-
-  return (
-    <Dialog.Root defaultOpen={false} open={isOpen} onOpenChange={setIsOpen}>
-      <Dialog.Trigger asChild>
-        <button className="bg-blue-700 text-white px-4 py-2 hover:bg-blue-900 cursor-pointer rounded-[20px] mx-auto flex gap-1 items-center tracking-wide">
-          <Plus strokeWidth={4} className="w-5 h-5" />
-          New Patient
-        </button>
-      </Dialog.Trigger>
-
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[rgba(12,3,24,0.7)] data-[state=open]:animate-overlayShow" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 max-h-[85vh] w-[90vw] max-w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-md bg-gray1 p-[25px] shadow-2xl focus:outline-none data-[state=open]:animate-contentShow bg-black">
-          <Dialog.Title className="m-0 font-medium border-b border-gray-600 pb-2 text-gray-200">
-            New Patient
-          </Dialog.Title>
-
-          <Form setIsOpen={setIsOpen} />
-
-          <Dialog.Close asChild>
-            <button
-              className="cursor-pointer absolute right-0 top-0 p-1 hover:bg-red-800"
-              aria-label="Close"
-            >
-              <X strokeWidth={1} />
-            </button>
-          </Dialog.Close>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
-
-const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
+export const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
   const router = useRouter()
 
   const [imageFile, setImageFile] = useState<File>()
@@ -118,8 +82,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
         <div className="text-red-500 border rounded-md px-4 py-6">{errors.root.message}</div>
       )}
 
-      {/* INPUTS  */}
-      {/* with their respective error below --> errors.name */}
+      {/* NAME */}
       <div>
         <label htmlFor="name" className="block">
           Full Name:
@@ -137,6 +100,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
         )}
       </div>
 
+      {/* EMAIL */}
       <div>
         <label htmlFor="email" className="block font-medium ">
           Email:
@@ -154,6 +118,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
         )}
       </div>
 
+      {/* PHONE */}
       <div>
         <label htmlFor="phone" className="block font-medium ">
           Phone:
@@ -189,6 +154,7 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
         )}
       </div>
 
+      {/* IMAGE */}
       <FileImgInput setImageFile={setImageFile} isSubmitting={isSubmitting} />
 
       <button
@@ -198,75 +164,13 @@ const Form = ({ setIsOpen }: { setIsOpen: Dispatch<SetStateAction<boolean>> }) =
       >
         {isSubmitting ? "Loading..." : "Add Patient"}
       </button>
-    </form>
-  )
-}
 
-const FileImgInput = ({
-  setImageFile,
-  isSubmitting,
-}: {
-  setImageFile: Dispatch<SetStateAction<File | undefined>>
-  isSubmitting: boolean
-}) => {
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("")
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target?.files?.[0]
-
-    if (!file) {
-      setImagePreviewUrl("")
-      setImageFile(undefined)
-      return
-    }
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload a valid image file (jpg, png, jpeg)")
-      e.target.value = ""
-      setImagePreviewUrl("")
-      setImageFile(undefined)
-      return
-    }
-
-    // Limit size 5 MB
-    const maxSizeMB = 5
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`Image must be smaller than ${maxSizeMB} MB`)
-      e.target.value = ""
-      setImagePreviewUrl("")
-      setImageFile(undefined)
-      return
-    }
-
-    const imgURl = URL.createObjectURL(file)
-    setImagePreviewUrl(imgURl)
-    setImageFile(file)
-  }
-
-  return (
-    <div>
-      <label className="block font-medium">Image</label>
-
-      {imagePreviewUrl && (
-        <Image
-          src={imagePreviewUrl}
-          height={150}
-          width={150}
-          alt="preview image to upload"
-          key={imagePreviewUrl}
-          className="object-cover object-top h-20 w-20 rounded-xl mx-auto mt-1"
-        />
+      {/* Loading OVERLAY */}
+      {isSubmitting && (
+        <div className="inset-0 grid place-items-center z-20 absolute bg-gray-800 opacity-50 rounded-xl">
+          <Loader2 className="animate-spin text-red-500 h-12 w-12" strokeWidth={3} />
+        </div>
       )}
-      <input
-        className="formInputFile mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-center cursor-pointer"
-        type="file"
-        id="image"
-        onChange={handleChange}
-        accept=".jpg,.png,.jpeg"
-        required
-        disabled={isSubmitting}
-      />
-    </div>
+    </form>
   )
 }
