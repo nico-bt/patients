@@ -1,13 +1,13 @@
 # Patient Registration
 
 👋 Hello  
-I've seen on linkedin and in your website that you currently have several open positions.  
-So I have applied for frontend (semi-senior).  
+I've seen on LinkedIn and on your website that you currently have several open positions.  
+I applied for the Frontend (semi-senior) role.  
 
-Also, previous any contact, I looked for recent code challenges in github to present in advance.  
-And I found [this one:](https://github.com/JJQuartino/ChallengeLightIt/blob/main/README.md)
+Also, before any contact, I looked for recent code challenges on GitHub to present something in advance.  
+I found [this one:](https://github.com/JJQuartino/ChallengeLightIt/blob/main/README.md)
 that seems more fullstack oriented.  
-But did it anyway as a spontaneous presentation.
+I did it anyway as a spontaneous presentation.
 
 ### Live: 🔗 https://patients-lemon.vercel.app/
 
@@ -28,17 +28,17 @@ Techs used:
 
 
 ## Comments
-- Followed the "Next way" of using server actions and getting direct access to db via Server Components.  
-I did not create a separate api to access via client side.
+- Followed the "Next way" of using server actions to access the database directly from Server Components.  
+I did not create a separate API layer for client-side access.
 
-- I've kept the server actions files close to where they are used. Other option could be to create a separate "actions" folder.
+- Kept the server actions files close to where they are used. Other option could be to create a dedicated "actions/" folder.
   
-- I took the liberty of using Supabase instead of a local Docker database to store patients and images in the cloud.  
-  This cloud instance can be used as a development/staging environment.
+- Used Supabase instead of a local Docker database to store patients and images in the cloud.  
+  This cloud instance can act as development/staging environment.
   
-- Patients schema and crud operations are defined using Prisma ORM, stored in a postgres db on Supabase.
+- The patient schema and crud operations are defined with Prisma ORM, stored in a Postgres db on Supabase.
   
-- Images are uploaded to a bucket on Supabase and then the resulting url is stored in a patient.photo item.  
+- Images are uploaded to a bucket on Supabase and then, the resulting URL is saved in a "patient.photo" field.  
 
 - The phone input uses `react-international-phone` package.  
   And also I've validated the numbers using https://github.com/google/libphonenumber  
@@ -52,11 +52,39 @@ I did not create a separate api to access via client side.
 
 ## Next steps / improvements
 
-- Add pagination or infinite scrolling or "show more" to limit the number of items
+- Add pagination, infinite scrolling or "show more" to limit the number of items
 - Add "edit patient" feature
+- Add filters and sorting options (by email, country code, etc.)
+- Add role-based authentication (e.g. admin, staff)
+- Add caching for patient list
 - Add tests
 
 ❤️ Hope you like it!  
 
-PD: for running locally, after cloning the repo, you will need to add an .env file with keys to access db.  
-Hypothetically, if we were using a cloud database for staging, the .env file could be shared privately via ClickUp, Slack, or another method.
+---
+## Notes for local setup 
+After cloning the repo, you’ll need to create a `.env` file with your database access keys.    
+If we were using a shared staging environment, this `.env` file could be provided privately via ClickUp, Slack, or another secure channel.  
+
+### Example `.env` file
+
+> ⚠️ Replace the values below with your own Supabase project credentials.
+
+```env
+# Connect to Supabase via connection pooling (used by Prisma in production)
+DATABASE_URL="YOUR_DB_URL"
+
+# Direct connection to the database (used for local migrations)
+DIRECT_URL="YOUR_URL"
+
+# Supabase project configuration for client-side access
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+
+# Public anon key for the Supabase client SDK
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+And then: 
+```bash
+npm install
+npm run dev
