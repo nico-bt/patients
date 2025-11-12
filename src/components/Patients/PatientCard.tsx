@@ -27,6 +27,10 @@ export function PatientCard({ patient }: { patient: Patient }) {
       if (result.error) {
         toast.error(result.error)
       }
+
+      if (result.success) {
+        toast("Patient deleted successfully", { icon: "🗑️" })
+      }
     })
   }
 
